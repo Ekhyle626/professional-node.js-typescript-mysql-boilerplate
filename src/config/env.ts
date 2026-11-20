@@ -4,7 +4,9 @@ import Joi from 'joi';
 dotenv.config();
 
 const envSchema = Joi.object({
-  NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+  NODE_ENV: Joi.string()
+    .valid('development', 'production', 'test')
+    .default('development'),
   PORT: Joi.number().default(3000),
   DB_HOST: Joi.string().required(),
   DB_PORT: Joi.number().default(3306),
@@ -12,14 +14,18 @@ const envSchema = Joi.object({
   DB_PASSWORD: Joi.string().required(),
   DB_DATABASE: Joi.string().required(),
   FRONTEND_URL: Joi.string().uri().default('http://localhost:4200'),
+
+  // JWT configuration
+  JWT_SECRET: Joi.string().min(32).required(),
+  JWT_EXPIRES_IN: Joi.string().default('24h'),
 }).unknown();
 
-const { value: env, error } = envSchema
-  .prefs({ errors: { label: 'key' } })
-  .validate(process.env);
+const { value: env, error } = envSchema.prefs({
+  errors: { label: 'key' }
+}).validate(process.env);
 
 if (error) {
-  throw new Error(`Environment validation error: ${error.message}`);
+  throw new Error(`❌ Environment validation error: ${error.message}`);
 }
 
 export const config = {
@@ -36,4 +42,10 @@ export const config = {
     database: env.DB_DATABASE,
   },
   frontendUrl: env.FRONTEND_URL,
+
+  // JWT config
+  jwt: {
+    secret: env.JWT_SECRET as string,
+    expiresIn: env.JWT_EXPIRES_IN as string,
+  },
 };

@@ -14,8 +14,9 @@ const logger = createLogger('UserService');
 export interface CreateUserInput {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface UpdateUserInput {
@@ -42,12 +43,23 @@ export class UserService {
     }
 
     const hashedPassword = await bcrypt.hash(input.password, 12);
+    const nameParts = input.name?.trim().split(/\s+/).filter(Boolean) ?? [];
+    const firstName =
+      input.firstName?.trim() || nameParts[0] || '';
+    const lastName =
+      input.lastName?.trim() || nameParts.slice(1).join(' ') || '';
+
+    if (!firstName || !lastName) {
+      throw new ValidationError(
+        'Provide a name or both firstName and lastName',
+      );
+    }
 
     const user = this.userRepository.create({
       email: input.email.toLowerCase(),
       password: hashedPassword,
-      firstName: input.firstName.trim(),
-      lastName: input.lastName.trim(),
+      firstName,
+      lastName,
     });
 
     const savedUser = await this.userRepository.save(user);

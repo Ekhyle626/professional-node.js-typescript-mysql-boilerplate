@@ -6,7 +6,7 @@ import {
   requestSizeLimiter,
 } from './middleware/security';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
-import routes from './routes';
+import routes from '.';
 import { createLogger } from './utils/logger';
 
 const logger = createLogger('App');
@@ -28,6 +28,8 @@ export const createApp = (): Application => {
   });
 
   app.use('/api/v1', routes);
+  // Backward-compatible API prefix for existing clients.
+  app.use('/api', routes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
